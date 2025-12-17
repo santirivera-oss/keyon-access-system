@@ -1,0 +1,254 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================
+    // 🔐 FUNCIONES AUXILIARES
+    // ========================================
+    
+    // Verificar si el usuario está autenticado con Firebase Auth (solo admin)
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Verificar si es admin autenticado
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+    
+    // Validar que los datos no contengan campos peligrosos
+    function noMaliciousFields() {
+      return !request.resource.data.keys().hasAny(['__proto__', 'constructor', 'prototype']);
+    }
+    
+    // Validar tamaño máximo de documento (prevenir abuso)
+    function isReasonableSize() {
+      return request.resource.size() < 1000000; // 1MB máximo
+    }
+    
+    // ========================================
+    // 👨‍🎓 COLECCIÓN: ALUMNOS
+    // ========================================
+    match /alumnos/{alumnoId} {
+      // ✅ Lectura: permitida (necesario para login por QR/barcode)
+      allow read: if true;
+      
+      // ✅ Crear: solo admin autenticado
+      allow create: if isAdmin() && noMaliciousFields();
+      
+      // ✅ Actualizar: 
+      // - Admin puede actualizar todo
+      // - Sistema puede actualizar campos específicos (password, facial, onesignal)
+      allow update: if noMaliciousFields() && isReasonableSize() && (
+        isAdmin() ||
+        // Campos permitidos para auto-actualización (sin auth)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'password', 'passwordCreatedAt', 'passwordResetAt', 'passwordResetBy',
+          'reconocimientoFacial',
+          'onesignal_id', 'onesignal_token',
+          'whatsapp'
+        ])
+      );
+      
+      // ❌ Eliminar: solo admin
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 👨‍🏫 COLECCIÓN: PROFESORES
+    // ========================================
+    match /profesores/{profesorId} {
+      // ✅ Lectura: permitida (necesario para login)
+      allow read: if true;
+      
+      // ✅ Crear: solo admin
+      allow create: if isAdmin() && noMaliciousFields();
+      
+      // ✅ Actualizar: admin o campos específicos
+      allow update: if noMaliciousFields() && isReasonableSize() && (
+        isAdmin() ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'password', 'passwordCreatedAt', 'passwordResetAt', 'passwordResetBy',
+          'reconocimientoFacial',
+          'onesignal_id', 'onesignal_token',
+          'telefono', 'whatsapp',
+          'materias', 'grupos', 'horario', 'iniciales'
+        ])
+      );
+      
+      // ❌ Eliminar: solo admin
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 👤 COLECCIÓN: USUARIOS (tokens y notificaciones)
+    // ========================================
+    match /usuarios/{usuarioId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields() && isReasonableSize();
+      allow delete: if isAdmin();
+      
+      // Subcolección de notificaciones personales
+      match /notificaciones/{notifId} {
+        allow read: if true;
+        allow create: if noMaliciousFields();
+        allow update: if noMaliciousFields();
+        allow delete: if isAdmin();
+      }
+    }
+    
+    // ========================================
+    // 📚 COLECCIÓN: SESIONES (clases activas)
+    // ========================================
+    match /sesiones/{sesionId} {
+      // ✅ Lectura: permitida (dashboard, reportes)
+      allow read: if true;
+      
+      // ✅ Crear: permitido (profesor inicia clase)
+      allow create: if noMaliciousFields() && isReasonableSize();
+      
+      // ✅ Actualizar: permitido (agregar alumnos, finalizar)
+      allow update: if noMaliciousFields() && isReasonableSize();
+      
+      // ❌ Eliminar: solo admin
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📝 COLECCIÓN: REGISTROS (log de asistencia)
+    // ========================================
+    match /registros/{registroId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 🏫 COLECCIÓN: INGRESOS_CBTIS (kiosko)
+    // ========================================
+    match /ingresos_cbtis/{ingresoId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📋 COLECCIÓN: AVISOS
+    // ========================================
+    match /avisos/{avisoId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 💬 COLECCIÓN: CHATS
+    // ========================================
+    match /chats/{chatId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+      
+      match /mensajes/{mensajeId} {
+        allow read: if true;
+        allow create: if noMaliciousFields();
+        allow update: if noMaliciousFields();
+        allow delete: if isAdmin();
+      }
+    }
+    
+    // ========================================
+    // 📅 COLECCIÓN: HORARIOS
+    // ========================================
+    match /horarios/{horarioId} {
+      allow read: if true;
+      allow create: if isAdmin() && noMaliciousFields();
+      allow update: if isAdmin() && noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📋 COLECCIÓN: ASIGNACIONES
+    // ========================================
+    match /asignaciones/{asignacionId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📊 COLECCIÓN: REPORTES (disciplina)
+    // ========================================
+    match /reportes/{reporteId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📄 COLECCIÓN: CITATORIOS
+    // ========================================
+    match /citatorios/{citatorioId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📝 COLECCIÓN: PERMISOS (salidas)
+    // ========================================
+    match /permisos/{permisoId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 🔔 COLECCIÓN: NOTIFICACIONES
+    // ========================================
+    match /notificaciones/{notifId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📱 COLECCIÓN: NOTIFICACIONES_PUSH
+    // ========================================
+    match /notificaciones_push/{pushId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if noMaliciousFields();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 🎭 COLECCIÓN: LOGS_FACIAL (inmutable)
+    // ========================================
+    match /logs_facial/{logId} {
+      allow read: if true;
+      allow create: if noMaliciousFields();
+      allow update: if false; // Logs son inmutables
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 🚫 REGLA POR DEFECTO - DENEGAR TODO LO DEMÁS
+    // ========================================
+    // Cualquier colección no especificada será denegada
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

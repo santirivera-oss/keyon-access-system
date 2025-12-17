@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Keyon Padres">
+  <meta name="description" content="App para padres - Seguimiento en tiempo real de tus hijos en CBTis">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="/padres/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/padres/icons/icon-32.png">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <title>Keyon Padres</title>
+  
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: rgba(30, 41, 59, 0.8);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-primary: #06b6d4;
+      --accent-secondary: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(148, 163, 184, 0.1);
+      --glass: rgba(15, 23, 42, 0.8);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+    
+    /* ==================== SPLASH SCREEN ==================== */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .splash-logo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      margin-bottom: 24px;
+      animation: pulse-glow 2s ease-in-out infinite;
+      box-shadow: 0 0 60px rgba(6, 182, 212, 0.4);
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(6, 182, 212, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(6, 182, 212, 0.6); }
+    }
+    
+    .splash-title {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    
+    .splash-subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .splash-loader {
+      margin-top: 40px;
+      width: 200px;
+      height: 4px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .splash-loader-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 4px;
+      animation: loading 1.5s ease-out forwards;
+    }
+    
+    @keyframes loading {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    
+    /* ==================== LOGIN SCREEN ==================== */
+    #login-screen {
+      display: none;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 24px;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 20px;
+      box-shadow: 0 20px 40px rgba(6, 182, 212, 0.3);
+    }
+    
+    .login-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    
+    .login-subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+    
+    .login-form {
+      max-width: 400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+    }
+    
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .btn-primary {
+      width: 100%;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: none;
+      border-radius: 16px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(6, 182, 212, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .login-help {
+      text-align: center;
+      margin-top: 32px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    
+    .login-help a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    /* ==================== MAIN APP ==================== */
+    #main-app {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: 80px;
+    }
+    
+    /* Header */
+    .app-header {
+      padding: 20px 20px 16px;
+      background: linear-gradient(180deg, var(--bg-primary) 0%, transparent 100%);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .header-greeting {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .header-name {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    
+    .header-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    
+    .header-avatar:hover {
+      transform: scale(1.05);
+    }
+    
+    /* Status Banner */
+    .status-banner {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .status-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    
+    .status-icon.inside {
+      background: rgba(16, 185, 129, 0.2);
+    }
+    
+    .status-icon.outside {
+      background: rgba(239, 68, 68, 0.2);
+    }
+    
+    .status-content {
+      flex: 1;
+    }
+    
+    .status-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .status-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .status-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .status-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    
+    /* Content */
+    .app-content {
+      flex: 1;
+      padding: 0 20px;
+    }
+    
+    /* Section */
+    .section {
+      margin-bottom: 28px;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    
+    .section-action {
+      font-size: 14px;
+      color: var(--accent-primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    
+    /* Quick Stats */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .stat-card:active {
+      transform: scale(0.98);
+    }
+    
+    .stat-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    /* Timeline */
+    .timeline {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+    }
+    
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .timeline-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    
+    .timeline-item:first-child {
+      padding-top: 0;
+    }
+    
+    .timeline-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .timeline-icon.entrada {
+      background: rgba(16, 185, 129, 0.2);
+    }
+    
+    .timeline-icon.salida {
+      background: rgba(239, 68, 68, 0.2);
+    }
+    
+    .timeline-icon.clase {
+      background: rgba(6, 182, 212, 0.2);
+    }
+    
+    .timeline-content {
+      flex: 1;
+    }
+    
+    .timeline-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .timeline-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .timeline-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    
+    /* Child Card */
+    .child-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .child-card:active {
+      transform: scale(0.98);
+    }
+    
+    .child-card.selected {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+    }
+    
+    .child-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .child-info {
+      flex: 1;
+    }
+    
+    .child-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .child-grade {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .child-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    
+    .child-status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .child-status-badge.inside {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+    
+    .child-status-badge.outside {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+    
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 12px 20px calc(12px + var(--safe-bottom));
+      display: flex;
+      justify-content: space-around;
+      z-index: 1000;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      border-radius: 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .nav-item.active {
+      color: var(--accent-primary);
+      background: rgba(6, 182, 212, 0.1);
+    }
+    
+    .nav-icon {
+      font-size: 24px;
+    }
+    
+    .nav-label {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    /* Views */
+    .view {
+      display: none;
+    }
+    
+    .view.active {
+      display: block;
+    }
+    
+    /* Historial View */
+    .history-date-header {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin: 20px 0 12px;
+      padding-left: 4px;
+    }
+    
+    .history-item {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+    
+    /* Notificaciones View */
+    .notification-item {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 14px;
+    }
+    
+    .notification-item.unread {
+      border-left: 3px solid var(--accent-primary);
+    }
+    
+    .notification-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(6, 182, 212, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .notification-content {
+      flex: 1;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .notification-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    
+    .notification-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    /* Perfil View */
+    .profile-header {
+      text-align: center;
+      padding: 32px 20px;
+    }
+    
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 32px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 700;
+      margin: 0 auto 16px;
+      box-shadow: 0 20px 40px rgba(6, 182, 212, 0.3);
+    }
+    
+    .profile-name {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    
+    .profile-email {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .profile-menu {
+      padding: 0 20px;
+    }
+    
+    .profile-menu-item {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .profile-menu-item:active {
+      transform: scale(0.98);
+    }
+    
+    .profile-menu-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(6, 182, 212, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .profile-menu-text {
+      flex: 1;
+    }
+    
+    .profile-menu-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .profile-menu-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .profile-menu-arrow {
+      color: var(--text-muted);
+      font-size: 20px;
+    }
+    
+    .btn-logout {
+      width: 100%;
+      padding: 18px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 16px;
+      color: var(--danger);
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-logout:active {
+      background: rgba(239, 68, 68, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .empty-state-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      transform: translateY(-120%);
+      transition: transform 0.3s ease;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+    }
+    
+    .toast.success {
+      border-left: 4px solid var(--success);
+    }
+    
+    .toast.error {
+      border-left: 4px solid var(--danger);
+    }
+    
+    .toast.warning {
+      border-left: 4px solid var(--warning);
+    }
+    
+    .toast-icon {
+      font-size: 24px;
+    }
+    
+    .toast-message {
+      flex: 1;
+      font-weight: 500;
+    }
+    
+    /* Pull to Refresh indicator */
+    .refresh-indicator {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--bg-secondary);
+      padding: 12px 20px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 99;
+      transition: transform 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .refresh-indicator.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    .refresh-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Install Banner */
+    .install-banner {
+      position: fixed;
+      bottom: 90px;
+      left: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      padding: 16px 20px;
+      border-radius: 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 999;
+      box-shadow: 0 10px 40px rgba(6, 182, 212, 0.4);
+    }
+    
+    .install-banner-text {
+      flex: 1;
+    }
+    
+    .install-banner-title {
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    
+    .install-banner-desc {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    
+    .install-banner-btn {
+      background: white;
+      color: var(--accent-primary);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    
+    .install-banner-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    
+    /* Utilities */
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .text-warning { color: var(--warning); }
+    .text-muted { color: var(--text-muted); }
+    
+    .mb-0 { margin-bottom: 0; }
+    .mt-4 { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-logo">👨‍👩‍👧</div>
+    <h1 class="splash-title">Keyon Padres</h1>
+    <p class="splash-subtitle">Seguimiento en tiempo real</p>
+    <div class="splash-loader">
+      <div class="splash-loader-bar"></div>
+    </div>
+  </div>
+  
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-header">
+      <div class="login-logo">👨‍👩‍👧</div>
+      <h1 class="login-title">Bienvenido</h1>
+      <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+    </div>
+    
+    <form class="login-form" id="login-form">
+      <div class="form-group">
+        <label class="form-label">Número de Control del Alumno</label>
+        <input type="text" class="form-input" id="input-control" placeholder="Ej: 22310123" required autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Código de Padre/Tutor</label>
+        <input type="password" class="form-input" id="input-codigo" placeholder="Código de 6 dígitos" required maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
+      </div>
+      
+      <button type="submit" class="btn-primary" id="btn-login">
+        Iniciar Sesión
+      </button>
+    </form>
+    
+    <p class="login-help">
+      ¿No tienes código? <a href="#" onclick="mostrarAyuda()">Solicítalo aquí</a>
+    </p>
+  </div>
+  
+  <!-- Main App -->
+  <div id="main-app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-top">
+        <div>
+          <p class="header-greeting" id="greeting">Buenos días,</p>
+          <h1 class="header-name" id="parent-name">Padre/Tutor</h1>
+        </div>
+        <div class="header-avatar" id="header-avatar" onclick="cambiarVista('perfil')">PT</div>
+      </div>
+      
+      <!-- Status Banner -->
+      <div class="status-banner" id="status-banner">
+        <div class="status-icon inside" id="status-icon">
+          🏫
+        </div>
+        <div class="status-content">
+          <p class="status-title" id="status-title">En el plantel</p>
+          <p class="status-subtitle" id="status-subtitle">Ingresó a las 7:15 AM</p>
+          <p class="status-time" id="status-time">Hace 2 horas</p>
+        </div>
+        <div class="status-live">
+          <span class="live-dot"></span>
+          EN VIVO
+        </div>
+      </div>
+    </header>
+    
+    <!-- Content -->
+    <main class="app-content">
+      <!-- Vista: Inicio -->
+      <div class="view active" id="view-inicio">
+        <!-- Seleccionar Hijo (si hay más de uno) -->
+        <section class="section" id="section-hijos" style="display: none;">
+          <div class="section-header">
+            <h2 class="section-title">Mis Hijos</h2>
+          </div>
+          <div id="lista-hijos"></div>
+        </section>
+        
+        <!-- Quick Stats -->
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Resumen del Mes</h2>
+          </div>
+          <div class="quick-stats">
+            <div class="stat-card">
+              <div class="stat-icon">📅</div>
+              <div class="stat-value text-success" id="stat-asistencias">--</div>
+              <div class="stat-label">Días asistidos</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⚠️</div>
+              <div class="stat-value text-warning" id="stat-faltas">--</div>
+              <div class="stat-label">Faltas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⏰</div>
+              <div class="stat-value text-danger" id="stat-retardos">--</div>
+              <div class="stat-label">Retardos</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-value" id="stat-porcentaje">--%</div>
+              <div class="stat-label">Asistencia</div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Timeline de Hoy -->
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Actividad de Hoy</h2>
+            <a href="#" class="section-action" onclick="cambiarVista('historial')">Ver todo</a>
+          </div>
+          <div class="timeline" id="timeline-hoy">
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <p class="empty-state-title">Sin actividad</p>
+              <p class="empty-state-desc">Aún no hay registros de hoy</p>
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <!-- Vista: Historial -->
+      <div class="view" id="view-historial">
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Historial de Asistencia</h2>
+          </div>
+          <div id="historial-lista"></div>
+        </section>
+      </div>
+      
+      <!-- Vista: Notificaciones -->
+      <div class="view" id="view-notificaciones">
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Notificaciones</h2>
+          </div>
+          <div id="notificaciones-lista">
+            <div class="empty-state">
+              <div class="empty-state-icon">🔔</div>
+              <p class="empty-state-title">Sin notificaciones</p>
+              <p class="empty-state-desc">Aquí aparecerán las alertas importantes</p>
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <!-- Vista: Perfil -->
+      <div class="view" id="view-perfil">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profile-avatar">PT</div>
+          <h2 class="profile-name" id="profile-name">Padre/Tutor</h2>
+          <p class="profile-email" id="profile-email">Tutor de 1 alumno</p>
+        </div>
+        
+        <div class="profile-menu">
+          <div class="profile-menu-item" onclick="mostrarInfoAlumno()">
+            <div class="profile-menu-icon">👨‍🎓</div>
+            <div class="profile-menu-text">
+              <p class="profile-menu-title">Información del Alumno</p>
+              <p class="profile-menu-desc">Ver datos y horarios</p>
+            </div>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          
+          <div class="profile-menu-item" onclick="configurarNotificaciones()">
+            <div class="profile-menu-icon">🔔</div>
+            <div class="profile-menu-text">
+              <p class="profile-menu-title">Notificaciones</p>
+              <p class="profile-menu-desc">Configurar alertas</p>
+            </div>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          
+          <div class="profile-menu-item" onclick="mostrarAyuda()">
+            <div class="profile-menu-icon">❓</div>
+            <div class="profile-menu-text">
+              <p class="profile-menu-title">Ayuda y Soporte</p>
+              <p class="profile-menu-desc">Preguntas frecuentes</p>
+            </div>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          
+          <div class="profile-menu-item" onclick="mostrarAcercaDe()">
+            <div class="profile-menu-icon">ℹ️</div>
+            <div class="profile-menu-text">
+              <p class="profile-menu-title">Acerca de</p>
+              <p class="profile-menu-desc">Versión 1.0.0</p>
+            </div>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          
+          <button class="btn-logout" onclick="cerrarSesion()">
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" data-view="inicio" onclick="cambiarVista('inicio')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Inicio</span>
+      </div>
+      <div class="nav-item" data-view="historial" onclick="cambiarVista('historial')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Historial</span>
+      </div>
+      <div class="nav-item" data-view="notificaciones" onclick="cambiarVista('notificaciones')">
+        <span class="nav-icon">🔔</span>
+        <span class="nav-label">Alertas</span>
+      </div>
+      <div class="nav-item" data-view="perfil" onclick="cambiarVista('perfil')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Perfil</span>
+      </div>
+    </nav>
+  </div>
+  
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span class="toast-icon" id="toast-icon">✅</span>
+    <span class="toast-message" id="toast-message">Mensaje</span>
+  </div>
+  
+  <!-- Refresh Indicator -->
+  <div class="refresh-indicator" id="refresh-indicator">
+    <div class="refresh-spinner"></div>
+    Actualizando...
+  </div>
+  
+  <!-- Install Banner -->
+  <div class="install-banner" id="install-banner">
+    <div class="install-banner-text">
+      <p class="install-banner-title">Instalar App</p>
+      <p class="install-banner-desc">Accede más rápido desde tu pantalla</p>
+    </div>
+    <button class="install-banner-btn" onclick="instalarApp()">Instalar</button>
+    <button class="install-banner-close" onclick="cerrarBannerInstalar()">×</button>
+  </div>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  
+  <script>
+    // ==================== CONFIGURACIÓN FIREBASE ====================
+    // ⚠️ IMPORTANTE: Reemplaza con tu configuración real de Firebase
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDD4DbbZzT6Mm1guTJUYE-HEtG4hq1qaP8",
+  authDomain: "scanner-v3.firebaseapp.com",
+  databaseURL: "https://scanner-v3-default-rtdb.firebaseio.com",
+  projectId: "scanner-v3",
+  storageBucket: "scanner-v3.firebasestorage.app",
+  messagingSenderId: "547241024349",
+  appId: "1:547241024349:web:5665e19ce04c5e658ba6b4",
+  measurementId: "G-0BEPYTG88V"
+};
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // ==================== ESTADO GLOBAL ====================
+    let usuarioActual = null;
+    let alumnoSeleccionado = null;
+    let unsubscribeRealtime = null;
+    let deferredPrompt = null;
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ocultar splash después de cargar
+      setTimeout(() => {
+        document.getElementById('splash-screen').classList.add('hidden');
+        verificarSesion();
+      }, 2000);
+      
+      // Registrar Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/padres/sw.js')
+          .then(reg => console.log('SW registrado'))
+          .catch(err => console.error('SW error:', err));
+      }
+      
+      // Detectar instalación PWA
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!localStorage.getItem('pwa-installed')) {
+          document.getElementById('install-banner').style.display = 'flex';
+        }
+      });
+    });
+    
+    // ==================== AUTENTICACIÓN ====================
+    function verificarSesion() {
+      const sesion = localStorage.getItem('keyon-padres-sesion');
+      if (sesion) {
+        usuarioActual = JSON.parse(sesion);
+        alumnoSeleccionado = usuarioActual.alumnos[0];
+        mostrarApp();
+      } else {
+        mostrarLogin();
+      }
+    }
+    
+    function mostrarLogin() {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+    
+    function mostrarApp() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = 'flex';
+      
+      actualizarGreeting();
+      actualizarUI();
+      iniciarEscuchaRealtime();
+      cargarHistorial();
+    }
+    
+    // Login Form
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const control = document.getElementById('input-control').value.trim();
+      const codigo = document.getElementById('input-codigo').value.trim();
+      const btnLogin = document.getElementById('btn-login');
+      
+      btnLogin.disabled = true;
+      btnLogin.textContent = 'Verificando...';
+      
+      try {
+        // Buscar alumno
+        const alumnoDoc = await db.collection('alumnos').doc(control).get();
+        
+        if (!alumnoDoc.exists) {
+          mostrarToast('No se encontró el alumno', 'error');
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Iniciar Sesión';
+          return;
+        }
+        
+        const alumno = { id: control, ...alumnoDoc.data() };
+        
+        // Verificar código de padre (simplificado - en producción usar sistema más seguro)
+        // Por ahora: código = últimos 6 dígitos del número de control + 000
+        const codigoEsperado = control.slice(-3) + '000';
+        
+        // MODO DEMO: Acepta cualquier código de 6 dígitos
+        if (codigo.length !== 6) {
+          mostrarToast('Código inválido', 'error');
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Iniciar Sesión';
+          return;
+        }
+        
+        // Crear sesión
+        usuarioActual = {
+          nombre: `Tutor de ${alumno.nombre}`,
+          email: `tutor_${control}@keyon.app`,
+          alumnos: [alumno]
+        };
+        
+        alumnoSeleccionado = alumno;
+        
+        // Guardar sesión
+        localStorage.setItem('keyon-padres-sesion', JSON.stringify(usuarioActual));
+        
+        mostrarToast('¡Bienvenido!', 'success');
+        mostrarApp();
+        
+      } catch (error) {
+        console.error('Error login:', error);
+        mostrarToast('Error de conexión', 'error');
+      }
+      
+      btnLogin.disabled = false;
+      btnLogin.textContent = 'Iniciar Sesión';
+    });
+    
+    function cerrarSesion() {
+      if (confirm('¿Cerrar sesión?')) {
+        localStorage.removeItem('keyon-padres-sesion');
+        if (unsubscribeRealtime) unsubscribeRealtime();
+        location.reload();
+      }
+    }
+    
+    // ==================== UI ====================
+    function actualizarGreeting() {
+      const hora = new Date().getHours();
+      let saludo = 'Buenas noches,';
+      if (hora >= 5 && hora < 12) saludo = 'Buenos días,';
+      else if (hora >= 12 && hora < 19) saludo = 'Buenas tardes,';
+      
+      document.getElementById('greeting').textContent = saludo;
+      document.getElementById('parent-name').textContent = usuarioActual?.nombre || 'Padre/Tutor';
+      
+      const iniciales = (usuarioActual?.nombre || 'PT').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      document.getElementById('header-avatar').textContent = iniciales;
+      document.getElementById('profile-avatar').textContent = iniciales;
+      document.getElementById('profile-name').textContent = usuarioActual?.nombre || 'Padre/Tutor';
+      document.getElementById('profile-email').textContent = `Tutor de ${usuarioActual?.alumnos?.length || 0} alumno(s)`;
+    }
+    
+    function actualizarUI() {
+      if (!alumnoSeleccionado) return;
+      
+      // Cargar estadísticas
+      cargarEstadisticas();
+      
+      // Cargar estado actual
+      cargarEstadoActual();
+    }
+    
+    async function cargarEstadoActual() {
+      try {
+        const hoy = new Date().toLocaleDateString('es-MX', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit' 
+        }).split('/').reverse().join('-');
+        
+        const snapshot = await db.collection('ingresos_cbtis')
+          .where('identificador', '==', alumnoSeleccionado.control || alumnoSeleccionado.id)
+          .where('fecha', '==', hoy)
+          .orderBy('timestamp', 'desc')
+          .limit(1)
+          .get();
+        
+        const statusIcon = document.getElementById('status-icon');
+        const statusTitle = document.getElementById('status-title');
+        const statusSubtitle = document.getElementById('status-subtitle');
+        const statusTime = document.getElementById('status-time');
+        
+        if (snapshot.empty) {
+          statusIcon.className = 'status-icon outside';
+          statusIcon.textContent = '🏠';
+          statusTitle.textContent = 'Fuera del plantel';
+          statusSubtitle.textContent = 'Sin registro de entrada hoy';
+          statusTime.textContent = '';
+        } else {
+          const registro = snapshot.docs[0].data();
+          const esIngreso = registro.tipoRegistro === 'Ingreso';
+          
+          statusIcon.className = `status-icon ${esIngreso ? 'inside' : 'outside'}`;
+          statusIcon.textContent = esIngreso ? '🏫' : '🏠';
+          statusTitle.textContent = esIngreso ? 'En el plantel' : 'Fuera del plantel';
+          statusSubtitle.textContent = `${registro.tipoRegistro} a las ${registro.hora}`;
+          statusTime.textContent = calcularTiempoTranscurrido(registro.timestamp);
+        }
+        
+        // Cargar timeline de hoy
+        cargarTimelineHoy(hoy);
+        
+      } catch (error) {
+        console.error('Error cargando estado:', error);
+      }
+    }
+    
+    async function cargarTimelineHoy(fecha) {
+      try {
+        const snapshot = await db.collection('ingresos_cbtis')
+          .where('identificador', '==', alumnoSeleccionado.control || alumnoSeleccionado.id)
+          .where('fecha', '==', fecha)
+          .orderBy('timestamp', 'desc')
+          .get();
+        
+        const timeline = document.getElementById('timeline-hoy');
+        
+        if (snapshot.empty) {
+          timeline.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <p class="empty-state-title">Sin actividad</p>
+              <p class="empty-state-desc">Aún no hay registros de hoy</p>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = '';
+        snapshot.forEach(doc => {
+          const reg = doc.data();
+          const esIngreso = reg.tipoRegistro === 'Ingreso';
+          html += `
+            <div class="timeline-item">
+              <div class="timeline-icon ${esIngreso ? 'entrada' : 'salida'}">
+                ${esIngreso ? '🔓' : '🚪'}
+              </div>
+              <div class="timeline-content">
+                <p class="timeline-title">${reg.tipoRegistro} al plantel</p>
+                <p class="timeline-desc">Método: ${reg.modo || 'QR'}</p>
+              </div>
+              <span class="timeline-time">${reg.hora}</span>
+            </div>
+          `;
+        });
+        
+        timeline.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error cargando timeline:', error);
+      }
+    }
+    
+    async function cargarEstadisticas() {
+      try {
+        // Obtener registros del mes actual
+        const ahora = new Date();
+        const primerDiaMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+        const fechaInicio = primerDiaMes.toISOString();
+        
+        const snapshot = await db.collection('ingresos_cbtis')
+          .where('identificador', '==', alumnoSeleccionado.control || alumnoSeleccionado.id)
+          .where('tipoRegistro', '==', 'Ingreso')
+          .get();
+        
+        // Contar días únicos con asistencia este mes
+        const diasAsistidos = new Set();
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.fecha && data.fecha >= primerDiaMes.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-')) {
+            diasAsistidos.add(data.fecha);
+          }
+        });
+        
+        // Calcular días hábiles del mes (aproximado)
+        const hoy = ahora.getDate();
+        let diasHabiles = 0;
+        for (let d = 1; d <= hoy; d++) {
+          const fecha = new Date(ahora.getFullYear(), ahora.getMonth(), d);
+          const diaSemana = fecha.getDay();
+          if (diaSemana !== 0 && diaSemana !== 6) diasHabiles++;
+        }
+        
+        const asistencias = diasAsistidos.size;
+        const faltas = Math.max(0, diasHabiles - asistencias);
+        const porcentaje = diasHabiles > 0 ? Math.round((asistencias / diasHabiles) * 100) : 100;
+        
+        // Actualizar UI
+        document.getElementById('stat-asistencias').textContent = asistencias;
+        document.getElementById('stat-faltas').textContent = faltas;
+        document.getElementById('stat-retardos').textContent = '0'; // TODO: Implementar
+        document.getElementById('stat-porcentaje').textContent = porcentaje + '%';
+        
+      } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+      }
+    }
+    
+    async function cargarHistorial() {
+      try {
+        const snapshot = await db.collection('ingresos_cbtis')
+          .where('identificador', '==', alumnoSeleccionado.control || alumnoSeleccionado.id)
+          .orderBy('timestamp', 'desc')
+          .limit(50)
+          .get();
+        
+        const lista = document.getElementById('historial-lista');
+        
+        if (snapshot.empty) {
+          lista.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <p class="empty-state-title">Sin historial</p>
+              <p class="empty-state-desc">Aún no hay registros de asistencia</p>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = '';
+        let fechaActual = '';
+        
+        snapshot.forEach(doc => {
+          const reg = doc.data();
+          
+          // Agrupar por fecha
+          if (reg.fecha !== fechaActual) {
+            fechaActual = reg.fecha;
+            const fechaFormateada = formatearFecha(reg.fecha);
+            html += `<p class="history-date-header">${fechaFormateada}</p>`;
+          }
+          
+          const esIngreso = reg.tipoRegistro === 'Ingreso';
+          html += `
+            <div class="history-item">
+              <div class="timeline-icon ${esIngreso ? 'entrada' : 'salida'}">
+                ${esIngreso ? '🔓' : '🚪'}
+              </div>
+              <div class="timeline-content">
+                <p class="timeline-title">${reg.tipoRegistro}</p>
+                <p class="timeline-desc">${reg.modo || 'QR'}</p>
+              </div>
+              <span class="timeline-time">${reg.hora}</span>
+            </div>
+          `;
+        });
+        
+        lista.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error cargando historial:', error);
+      }
+    }
+    
+    // ==================== REALTIME ====================
+    function iniciarEscuchaRealtime() {
+      if (!alumnoSeleccionado) return;
+      
+      const hoy = new Date().toLocaleDateString('es-MX', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      }).split('/').reverse().join('-');
+      
+      unsubscribeRealtime = db.collection('ingresos_cbtis')
+        .where('identificador', '==', alumnoSeleccionado.control || alumnoSeleccionado.id)
+        .where('fecha', '==', hoy)
+        .orderBy('timestamp', 'desc')
+        .limit(1)
+        .onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            const registro = snapshot.docs[0].data();
+            actualizarEstadoRealtime(registro);
+          }
+        }, (error) => {
+          console.error('Error en realtime:', error);
+        });
+    }
+    
+    function actualizarEstadoRealtime(registro) {
+      const statusIcon = document.getElementById('status-icon');
+      const statusTitle = document.getElementById('status-title');
+      const statusSubtitle = document.getElementById('status-subtitle');
+      const statusTime = document.getElementById('status-time');
+      
+      const esIngreso = registro.tipoRegistro === 'Ingreso';
+      
+      statusIcon.className = `status-icon ${esIngreso ? 'inside' : 'outside'}`;
+      statusIcon.textContent = esIngreso ? '🏫' : '🏠';
+      statusTitle.textContent = esIngreso ? 'En el plantel' : 'Fuera del plantel';
+      statusSubtitle.textContent = `${registro.tipoRegistro} a las ${registro.hora}`;
+      statusTime.textContent = 'Ahora mismo';
+      
+      // Mostrar notificación
+      mostrarToast(
+        `${alumnoSeleccionado.nombre} ${esIngreso ? 'ingresó al' : 'salió del'} plantel`,
+        'success'
+      );
+      
+      // Vibrar si está soportado
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+      
+      // Actualizar timeline
+      cargarTimelineHoy(registro.fecha);
+    }
+    
+    // ==================== NAVEGACIÓN ====================
+    function cambiarVista(vistaId) {
+      // Ocultar todas las vistas
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      
+      // Mostrar vista seleccionada
+      document.getElementById(`view-${vistaId}`).classList.add('active');
+      
+      // Actualizar navegación
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.view === vistaId) {
+          item.classList.add('active');
+        }
+      });
+      
+      // Scroll arriba
+      window.scrollTo(0, 0);
+    }
+    
+    // ==================== UTILIDADES ====================
+    function mostrarToast(mensaje, tipo = 'success') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const message = document.getElementById('toast-message');
+      
+      const iconos = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+      
+      toast.className = `toast ${tipo}`;
+      icon.textContent = iconos[tipo] || '✅';
+      message.textContent = mensaje;
+      
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+    
+    function calcularTiempoTranscurrido(timestamp) {
+      const ahora = new Date();
+      const fecha = new Date(timestamp);
+      const diff = Math.floor((ahora - fecha) / 1000 / 60); // minutos
+      
+      if (diff < 1) return 'Ahora mismo';
+      if (diff < 60) return `Hace ${diff} minuto${diff > 1 ? 's' : ''}`;
+      
+      const horas = Math.floor(diff / 60);
+      if (horas < 24) return `Hace ${horas} hora${horas > 1 ? 's' : ''}`;
+      
+      const dias = Math.floor(horas / 24);
+      return `Hace ${dias} día${dias > 1 ? 's' : ''}`;
+    }
+    
+    function formatearFecha(fechaStr) {
+      const [year, month, day] = fechaStr.split('-');
+      const fecha = new Date(year, month - 1, day);
+      const hoy = new Date();
+      const ayer = new Date(hoy);
+      ayer.setDate(ayer.getDate() - 1);
+      
+      if (fecha.toDateString() === hoy.toDateString()) return 'Hoy';
+      if (fecha.toDateString() === ayer.toDateString()) return 'Ayer';
+      
+      return fecha.toLocaleDateString('es-MX', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      });
+    }
+    
+    // ==================== FUNCIONES DE PERFIL ====================
+    function mostrarInfoAlumno() {
+      if (!alumnoSeleccionado) return;
+      
+      alert(`
+📚 Información del Alumno
+
+Nombre: ${alumnoSeleccionado.nombre} ${alumnoSeleccionado.apellidos || ''}
+Control: ${alumnoSeleccionado.control || alumnoSeleccionado.id}
+Grado: ${alumnoSeleccionado.grado || 'N/A'}
+Grupo: ${alumnoSeleccionado.grupo || 'N/A'}
+Turno: ${alumnoSeleccionado.turno || 'N/A'}
+      `);
+    }
+    
+    function configurarNotificaciones() {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            mostrarToast('Notificaciones activadas', 'success');
+          } else {
+            mostrarToast('Notificaciones denegadas', 'warning');
+          }
+        });
+      } else {
+        mostrarToast('Tu navegador no soporta notificaciones', 'error');
+      }
+    }
+    
+    function mostrarAyuda() {
+      alert(`
+❓ Ayuda y Soporte
+
+Para obtener tu código de acceso:
+1. Acude a la dirección del plantel
+2. Presenta tu identificación oficial
+3. Solicita el código de padre/tutor
+
+Contacto:
+📧 soporte@keyon.app
+📞 (555) 123-4567
+      `);
+    }
+    
+    function mostrarAcercaDe() {
+      alert(`
+📱 Keyon Padres v1.0.0
+
+Sistema de seguimiento en tiempo real para padres de familia.
+
+© 2025 Keyon Access System
+Todos los derechos reservados.
+      `);
+    }
+    
+    // ==================== PWA ====================
+    function instalarApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            localStorage.setItem('pwa-installed', 'true');
+            document.getElementById('install-banner').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+    
+    function cerrarBannerInstalar() {
+      document.getElementById('install-banner').style.display = 'none';
+      localStorage.setItem('pwa-banner-closed', 'true');
+    }
+    
+    // ==================== FUNCIONES ADICIONALES MEJORADAS ====================
+    
+    // Cargar y mostrar clases del día con estado de asistencia
+    async function cargarClasesDelDia() {
+      // Horario simulado - En producción esto vendría de Firebase
+      const horarioHoy = [
+        { hora: '07:00', materia: 'Matemáticas IV', profesor: 'Prof. García López', aula: '201', estado: 'asistio' },
+        { hora: '08:00', materia: 'Física II', profesor: 'Prof. Martínez R.', aula: '305', estado: 'asistio' },
+        { hora: '09:00', materia: 'Química II', profesor: 'Prof. Hernández S.', aula: '102', estado: 'en_clase' },
+        { hora: '10:00', materia: 'Historia de México', profesor: 'Prof. López M.', aula: '204', estado: 'pendiente' },
+        { hora: '11:00', materia: 'Inglés IV', profesor: 'Prof. Smith J.', aula: '301', estado: 'pendiente' },
+        { hora: '12:00', materia: 'Programación', profesor: 'Prof. Torres A.', aula: 'Lab 1', estado: 'pendiente' }
+      ];
+      
+      return horarioHoy;
+    }
+    
+    // Cargar permisos de baño del día
+    async function cargarPermisosBano() {
+      // Simulado - En producción vendría de colección 'permisos_bano'
+      const permisos = [
+        { hora: '08:32', duracion: '5 min', clase: 'Física II', profesor: 'Prof. Martínez R.' },
+        { hora: '10:15', duracion: '3 min', clase: 'Historia', profesor: 'Prof. López M.' }
+      ];
+      
+      return permisos;
+    }
+    
+    // Calcular tiempo total en la escuela
+    function calcularTiempoEnEscuela(registros) {
+      let tiempoTotal = 0;
+      let ultimoIngreso = null;
+      
+      registros.forEach(reg => {
+        if (reg.tipoRegistro === 'Ingreso') {
+          ultimoIngreso = new Date(`${reg.fecha}T${reg.hora}`);
+        } else if (reg.tipoRegistro === 'Salida' && ultimoIngreso) {
+          const salida = new Date(`${reg.fecha}T${reg.hora}`);
+          tiempoTotal += salida - ultimoIngreso;
+          ultimoIngreso = null;
+        }
+      });
+      
+      // Si aún está dentro, calcular hasta ahora
+      if (ultimoIngreso) {
+        tiempoTotal += new Date() - ultimoIngreso;
+      }
+      
+      const horas = Math.floor(tiempoTotal / 3600000);
+      const minutos = Math.floor((tiempoTotal % 3600000) / 60000);
+      
+      return { horas, minutos, texto: `${horas}h ${minutos}m` };
+    }
+    
+    // Verificar si el alumno llegó tarde (después de 7:15)
+    function verificarRetardo(horaIngreso) {
+      if (!horaIngreso) return false;
+      const [h, m] = horaIngreso.split(':').map(Number);
+      return h > 7 || (h === 7 && m > 15);
+    }
+    
+    // Generar alerta si no ha entrado al plantel
+    function verificarAlertaNoIngreso() {
+      const ahora = new Date();
+      const hora = ahora.getHours();
+      const diaSemana = ahora.getDay();
+      
+      // Si es día laboral y después de las 7:30
+      if (diaSemana > 0 && diaSemana < 6 && hora >= 7 && hora < 14) {
+        return true;
+      }
+      return false;
+    }
+    
+    // Ver detalles de una clase específica
+    function verDetalleClase(materia, profesor, aula, estado) {
+      const estadoTexto = {
+        'asistio': '✅ Asistió a esta clase',
+        'en_clase': '📚 Actualmente en esta clase',
+        'pendiente': '⏳ Clase pendiente',
+        'falta': '❌ No asistió a esta clase'
+      };
+      
+      alert(`
+📚 ${materia}
+
+👨‍🏫 Profesor: ${profesor}
+🏫 Aula: ${aula}
+📋 Estado: ${estadoTexto[estado] || estado}
+      `);
+    }
+    
+    // Exportar historial a PDF (simplificado)
+    function exportarHistorial() {
+      mostrarToast('📄 Exportando historial...', 'info');
+      // En producción: generar PDF con los datos
+      setTimeout(() => {
+        mostrarToast('✅ Historial exportado', 'success');
+      }, 2000);
+    }
+    
+    // Configurar zona horaria
+    function obtenerFechaLocal() {
+      const ahora = new Date();
+      const offset = ahora.getTimezoneOffset();
+      const local = new Date(ahora.getTime() - offset * 60000);
+      return local.toISOString().split('T')[0];
+    }
+  </script>
+</body>
+</html>
